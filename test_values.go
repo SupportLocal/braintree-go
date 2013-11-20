@@ -11,8 +11,8 @@ var testCreditCards = map[string]CreditCard{
 	"discover":   CreditCard{Number: "6011111111111117"},
 }
 
-var testGateway = New(
-	Sandbox,
+var testGateway = newBraintree(
+	sandbox,
 	os.Getenv("BRAINTREE_MERCH_ID"),
 	os.Getenv("BRAINTREE_PUB_KEY"),
 	os.Getenv("BRAINTREE_PRIV_KEY"),

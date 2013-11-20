@@ -5,7 +5,14 @@ import (
 )
 
 func TestAddOn(t *testing.T) {
-	addOns, err := testGateway.AddOn().All()
+	server := newServer(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<yay></yay>`))
+	})
+	defer server.Close()
+
+	gw := Braintree{BaseURL: server.URL}
+
+	addOns, err := gw.AddOn().All()
 
 	if err != nil {
 		t.Error(err)

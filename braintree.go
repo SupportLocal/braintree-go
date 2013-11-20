@@ -11,39 +11,37 @@ import (
 type Environment string
 
 const (
-	Sandbox    Environment = "sandbox"
-	Production Environment = "production"
+	sandbox    = "https://sandbox.braintreegateway.com"
+	production = "https://www.braintreegateway.com"
 )
 
-func (e Environment) BaseURL() string {
-	switch e {
-	case Sandbox:
-		return "https://sandbox.braintreegateway.com"
-	case Production:
-		return "https://www.braintreegateway.com"
-	}
-	panic(`invalid environment "` + e + `"`)
+func NewProduction(merchId, pubKey, privKey string) *Braintree {
+	return newBraintree(production, merchId, pubKey, privKey)
 }
 
-func New(env Environment, merchId, pubKey, privKey string) *Braintree {
+func NewSandbox(merchId, pubKey, privKey string) *Braintree {
+	return newBraintree(sandbox, merchId, pubKey, privKey)
+}
+
+func newBraintree(baseURL, merchId, pubKey, privKey string) *Braintree {
 	return &Braintree{
-		Environment: env,
-		MerchantId:  merchId,
-		PublicKey:   pubKey,
-		PrivateKey:  privKey,
+		BaseURL:    baseURL,
+		MerchantId: merchId,
+		PublicKey:  pubKey,
+		PrivateKey: privKey,
 	}
 }
 
 type Braintree struct {
-	Environment Environment
-	MerchantId  string
-	PublicKey   string
-	PrivateKey  string
-	Logger      *log.Logger
+	BaseURL    string
+	MerchantId string
+	PublicKey  string
+	PrivateKey string
+	Logger     *log.Logger
 }
 
 func (g *Braintree) MerchantURL() string {
-	return g.Environment.BaseURL() + "/merchants/" + g.MerchantId
+	return g.BaseURL + "/merchants/" + g.MerchantId
 }
 
 func (g *Braintree) execute(method, path string, xmlObj interface{}) (*Response, error) {
