@@ -1,23 +1,41 @@
 package braintree
 
 import (
+	"net/http"
 	"testing"
 )
 
-func TestAddress(t *testing.T) {
-	customer, err := testGateway.Customer().Create(&Customer{
-		FirstName: "Jenna",
-		LastName:  "Smith",
+func TestAddressCreate(t *testing.T) {
+	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
+<address>
+  <id>gb</id>
+  <customer-id>71086244</customer-id>
+  <first-name>Jenna</first-name>
+  <last-name>Smith</last-name>
+  <company>Braintree</company>
+  <street-address>1 E Main St</street-address>
+  <extended-address>Suite 403</extended-address>
+  <locality>Chicago</locality>
+  <region>Illinois</region>
+  <postal-code>60622</postal-code>
+  <country-code-alpha2>US</country-code-alpha2>
+  <country-code-alpha3>USA</country-code-alpha3>
+  <country-code-numeric>840</country-code-numeric>
+  <country-name>United States of America</country-name>
+  <created-at type="datetime">2013-11-20T23:05:04Z</created-at>
+  <updated-at type="datetime">2013-11-20T23:05:04Z</updated-at>
+</address> `)
+
+	server := newServer(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		writeZip(w, response)
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if customer.Id == "" {
-		t.Fatal("invalid customer id")
-	}
+	defer server.Close()
+
+	gw := Braintree{BaseURL: server.URL}
 
 	addr := &Address{
-		CustomerId:         customer.Id,
+		CustomerId:         "71086244",
 		FirstName:          "Jenna",
 		LastName:           "Smith",
 		Company:            "Braintree",
@@ -32,7 +50,7 @@ func TestAddress(t *testing.T) {
 		CountryName:        "United States of America",
 	}
 
-	addr2, err := testGateway.Address().Create(addr)
+	addr2, err := gw.Address().Create(addr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +61,7 @@ func TestAddress(t *testing.T) {
 	if addr2.Id == "" {
 		t.Fatal()
 	}
-	if addr2.CustomerId != customer.Id {
+	if addr2.CustomerId != "71086244" {
 		t.Fatal()
 	}
 	if addr2.FirstName != addr.FirstName {
@@ -89,8 +107,20 @@ func TestAddress(t *testing.T) {
 		t.Fatal()
 	}
 
-	err = testGateway.Address().Delete(customer.Id, addr2.Id)
+}
+
+func TestAddressDelete(t *testing.T) {
+	server := newServer(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		writeZip(w, []byte(``))
+	})
+	defer server.Close()
+
+	gw := Braintree{BaseURL: server.URL}
+
+	err := gw.Address().Delete("71086244", "gb")
 	if err != nil {
 		t.Fatal(err)
 	}
+
 }

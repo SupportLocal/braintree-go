@@ -1,12 +1,29 @@
 package braintree
 
 import (
+	"net/http"
 	"testing"
 )
 
 func TestAddOn(t *testing.T) {
+	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
+<add-ons type="array">
+  <add-on>
+    <amount>10.00</amount>
+    <created-at type="datetime">2013-11-20T19:38:49Z</created-at>
+    <description>A test add on</description>
+    <id>test_add_on_id</id>
+    <kind>add_on</kind>
+    <merchant-id>foo</merchant-id>
+    <name>test_add_on_name</name>
+    <never-expires type="boolean">true</never-expires>
+    <number-of-billing-cycles nil="true"/>
+    <updated-at type="datetime">2013-11-20T19:38:49Z</updated-at>
+  </add-on>
+</add-ons>`)
+
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<yay></yay>`))
+		writeZip(w, response)
 	})
 	defer server.Close()
 
