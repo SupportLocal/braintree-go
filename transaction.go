@@ -1,7 +1,6 @@
 package braintree
 
 type Transaction struct {
-	XMLName            string              `xml:"transaction"`
 	Id                 string              `xml:"id,omitempty"`
 	CustomerID         string              `xml:"customer-id,omitempty"`
 	Status             string              `xml:"status,omitempty"`
@@ -18,6 +17,7 @@ type Transaction struct {
 	Options            *TransactionOptions `xml:"options,omitempty"`
 	CreatedAt          string              `xml:"created-at,omitempty"`
 	UpdatedAt          string              `xml:"updated-at,omitempty"`
+	ApiErrors
 }
 
 // TODO: not all transaction fields are implemented yet, here are the missing fields (add on demand)

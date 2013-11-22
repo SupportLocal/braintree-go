@@ -2,7 +2,10 @@ package braintree
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/xml"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -16,11 +19,11 @@ const (
 )
 
 func NewProduction(merchId, pubKey, privKey string) *Braintree {
-	return newBraintree(production, merchId, pubKey, privKey)
+	return newBraintree(production+"/merchants/"+merchId, merchId, pubKey, privKey)
 }
 
 func NewSandbox(merchId, pubKey, privKey string) *Braintree {
-	return newBraintree(sandbox, merchId, pubKey, privKey)
+	return newBraintree(sandbox+"/merchants/"+merchId, merchId, pubKey, privKey)
 }
 
 func newBraintree(baseURL, merchId, pubKey, privKey string) *Braintree {
@@ -40,32 +43,27 @@ type Braintree struct {
 	Logger     *log.Logger
 }
 
-func (g *Braintree) MerchantURL() string {
-	return g.BaseURL + "/merchants/" + g.MerchantId
-}
+func (g *Braintree) requestXML(method, path string, xmlIn, xmlOut interface{}) error {
+	path = g.BaseURL + "/" + path
 
-func (g *Braintree) execute(method, path string, xmlObj interface{}) (*Response, error) {
-	var buf bytes.Buffer
-	if xmlObj != nil {
-		xmlBody, err := xml.Marshal(xmlObj)
+	var reqBuf bytes.Buffer
+
+	if xmlIn != nil {
+		xmlBody, err := xml.Marshal(xmlIn)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		_, err = buf.Write(xmlBody)
+
+		_, err = reqBuf.Write(xmlBody)
 		if err != nil {
-			return nil, err
+			return err
 		}
+
 	}
 
-	url := g.MerchantURL() + "/" + path
-
-	if g.Logger != nil {
-		g.Logger.Printf("> %s %s\n%s", method, url, buf.String())
-	}
-
-	req, err := http.NewRequest(method, url, &buf)
+	req, err := http.NewRequest(method, path, &reqBuf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	req.Header.Set("Content-Type", "application/xml")
@@ -77,27 +75,31 @@ func (g *Braintree) execute(method, path string, xmlObj interface{}) (*Response,
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return err
+	}
+
+	b, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		return err
 	}
 	defer resp.Body.Close()
 
-	btr := &Response{
-		Response: resp,
-	}
-	err = btr.unpackBody()
+	xmlBytes, err := ioutil.ReadAll(b)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if g.Logger != nil {
-		g.Logger.Printf("<\n%s", string(btr.Body))
+	if xmlOut != nil {
+		if err := xml.Unmarshal(xmlBytes, xmlOut); err != nil {
+			return err
+		}
 	}
 
-	err = btr.apiError()
-	if err != nil {
-		return nil, err
+	if resp.StatusCode > 299 {
+		return fmt.Errorf("Status Code %d", resp.StatusCode)
 	}
-	return btr, nil
+
+	return nil
 }
 
 func (g *Braintree) Transaction() *TransactionGateway {

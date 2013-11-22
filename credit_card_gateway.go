@@ -4,50 +4,23 @@ type CreditCardGateway struct {
 	*Braintree
 }
 
-func (g *CreditCardGateway) Create(card *CreditCard) (*CreditCard, error) {
-	resp, err := g.execute("POST", "payment_methods", card)
-	if err != nil {
-		return nil, err
-	}
-	switch resp.StatusCode {
-	case 201:
-		return resp.creditCard()
-	}
-	return nil, &invalidResponseError{resp}
+func (g *CreditCardGateway) Create(card *CreditCard) error {
+	err := g.requestXML("POST", "payment_methods", card, card)
+	return err
 }
 
-func (g *CreditCardGateway) Update(card *CreditCard) (*CreditCard, error) {
-	resp, err := g.execute("PUT", "payment_methods/"+card.Token, card)
-	if err != nil {
-		return nil, err
-	}
-	switch resp.StatusCode {
-	case 200:
-		return resp.creditCard()
-	}
-	return nil, &invalidResponseError{resp}
+func (g *CreditCardGateway) Update(card *CreditCard) error {
+	err := g.requestXML("PUT", "payment_methods/"+card.Token, card, card)
+	return err
 }
 
-func (g *CreditCardGateway) Find(token string) (*CreditCard, error) {
-	resp, err := g.execute("GET", "payment_methods/"+token, nil)
-	if err != nil {
-		return nil, err
-	}
-	switch resp.StatusCode {
-	case 200:
-		return resp.creditCard()
-	}
-	return nil, &invalidResponseError{resp}
+func (g *CreditCardGateway) Find(token string) (CreditCard, error) {
+	var card CreditCard
+	err := g.requestXML("GET", "payment_methods/"+token, nil, &card)
+	return card, err
 }
 
 func (g *CreditCardGateway) Delete(card *CreditCard) error {
-	resp, err := g.execute("DELETE", "payment_methods/"+card.Token, nil)
-	if err != nil {
-		return err
-	}
-	switch resp.StatusCode {
-	case 200:
-		return nil
-	}
-	return &invalidResponseError{resp}
+	err := g.requestXML("DELETE", "payment_methods/"+card.Token, nil, nil)
+	return err
 }

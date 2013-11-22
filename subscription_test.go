@@ -180,7 +180,7 @@ func TestSubscriptionCreate(t *testing.T) {
 	g := gw.Subscription()
 
 	// Create
-	sub, err := g.Create(&Subscription{
+	subscription := Subscription{
 		PaymentMethodToken: "fzqy62",
 		PlanId:             "test_plan",
 		Options: &SubscriptionOptions{
@@ -188,14 +188,16 @@ func TestSubscriptionCreate(t *testing.T) {
 			RevertSubscriptionOnProrationFailure: true,
 			StartImmediately:                     true,
 		},
-	})
+	}
 
-	t.Log("sub1", sub)
+	err := g.Create(&subscription)
+
+	t.Log("sub1", subscription)
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if sub.Id == "" {
+	if subscription.Id == "" {
 		t.Fatal("invalid subscription id")
 	}
 
@@ -375,7 +377,7 @@ func TestSubscriptionUpdate(t *testing.T) {
 
 	g := gw.Subscription()
 
-	sub2, err := g.Update(&Subscription{
+	subscription := Subscription{
 		Id:     "4j2ntb",
 		PlanId: "test_plan_2",
 		Options: &SubscriptionOptions{
@@ -383,17 +385,18 @@ func TestSubscriptionUpdate(t *testing.T) {
 			RevertSubscriptionOnProrationFailure: true,
 			StartImmediately:                     true,
 		},
-	})
+	}
+	err := g.Update(&subscription)
 
-	t.Log("sub2", sub2)
+	t.Log("sub2", subscription)
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if sub2.Id != "4j2ntb" {
-		t.Fatal(sub2.Id)
+	if subscription.Id != "4j2ntb" {
+		t.Fatal(subscription.Id)
 	}
-	if x := sub2.PlanId; x != "test_plan_2" {
+	if x := subscription.PlanId; x != "test_plan_2" {
 		t.Fatal(x)
 	}
 }

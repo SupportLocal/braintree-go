@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestCreditCardErrors(t *testing.T) {
+func TestApiErrors(t *testing.T) {
 	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
 <api-error-response>
   <errors>
@@ -31,32 +31,38 @@ func TestCreditCardErrors(t *testing.T) {
   <message>Customer ID is required.</message>
 </api-error-response>`)
 
-	var ces CreditCardErrors
-	err := xml.Unmarshal(response, &ces)
+	var aes struct {
+		ApiErrors
+	}
+
+	err := xml.Unmarshal(response, &aes)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(ces) != 1 {
-		t.Log(ces)
-		t.Fatal(len(ces))
+
+	t.Log(aes)
+	if aes.ErrorMessage != "Customer ID is required." {
+		t.Fatal(aes.ErrorMessage)
 	}
-	ce := ces[0]
-	if ce.Message != "Customer ID is required." {
-		t.Fatal(ce.Message)
+	if aes.ErrorCount() != 1 {
+		t.Fatal(aes.ErrorCount())
 	}
-	if len(ce.Errors) != 1 {
-		t.Log(ce)
-		t.Fatal(len(ce.Errors))
+	if len(aes.CreditCardErrors) != 1 {
+		t.Fatal(len(aes.CreditCardErrors))
 	}
-	e := ce.Errors[0]
-	if e.Code != "91704" {
-		t.Fatal(e.Code)
+
+	cce := aes.CreditCardErrors[0]
+	if cce.Message != "Customer ID is required." {
+		t.Fatal(cce.Message)
 	}
-	if e.Attribute != "customer_id" {
-		t.Fatal(e.Attribute)
+	if cce.Code != "91704" {
+		t.Fatal(cce.Code)
 	}
-	if e.Message != "Customer ID is required." {
-		t.Fatal(e.Message)
+	if cce.Attribute != "customer_id" {
+		t.Fatal(cce.Attribute)
+	}
+	if cce.Message != "Customer ID is required." {
+		t.Fatal(cce.Message)
 	}
 
 }

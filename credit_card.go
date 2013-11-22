@@ -1,11 +1,5 @@
 package braintree
 
-import (
-	"encoding/xml"
-	"fmt"
-	"net/http"
-)
-
 type (
 	CreditCard struct {
 		CustomerId                string             `xml:"customer-id,omitempty"`
@@ -38,8 +32,8 @@ type (
 		IssuingBank               string             `xml:"issuing-bank,omitempty"`
 		UniqueNumberIdentifier    string             `xml:"unique-number-identifier,omitempty"`
 		BillingAddress            *Address           `xml:"billing-address,omitempty"`
-		Subscriptions             *Subscriptions     `xml:"subscriptions,omitempty"`
-		Errors                    CreditCardErrors
+		Subscriptions             Subscriptions      `xml:"subscription,omitempty"`
+		ApiErrors
 	}
 
 	CreditCards struct {
@@ -55,43 +49,3 @@ type (
 		UpdateExistingToken           string `xml:"update-existing-token,omitempty"`
 	}
 )
-
-func (card *CreditCard) Create(gateway Braintree) error {
-	url := gateway.MerchantURL() + "/payment_methods"
-	req, err := xmlRequest(gateway, "POST", url, card)
-	if err != nil {
-		return err
-	}
-	resp, err := doRequest(req)
-	if err != nil {
-		return err
-	}
-	xmlBytes, err := unzipRequest(resp)
-	if err != nil {
-		return err
-	}
-	if err := xml.Unmarshal(xmlBytes, &card.Errors); err != nil {
-		return err
-	}
-	if card.Errors.Count() == 0 && resp.StatusCode == http.StatusCreated {
-		err := xml.Unmarshal(xmlBytes, card)
-		return err
-	} else {
-		return fmt.Errorf("braintree returned invalid response (%d)", resp.StatusCode)
-	}
-}
-
-// AllSubscriptions returns all subscriptions for this card, or nil if none present.
-func (card *CreditCard) AllSubscriptions() []*Subscription {
-	if card.Subscriptions != nil {
-		subs := card.Subscriptions.Subscription
-		if len(subs) > 0 {
-			a := make([]*Subscription, 0, len(subs))
-			for _, s := range subs {
-				a = append(a, s)
-			}
-			return a
-		}
-	}
-	return nil
-}

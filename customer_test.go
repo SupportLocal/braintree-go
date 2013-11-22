@@ -87,7 +87,7 @@ func TestCustomerCreateWithCVVError(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	oc := &Customer{
+	oc := Customer{
 		FirstName: "Lionel",
 		LastName:  "Barrow",
 		Company:   "Braintree",
@@ -106,7 +106,7 @@ func TestCustomerCreateWithCVVError(t *testing.T) {
 	}
 
 	// Create with errors
-	_, err := gw.Customer().Create(oc)
+	err := gw.Customer().Create(&oc)
 	if err == nil {
 		t.Fatal("Did not receive error when creating invalid customer")
 	}
@@ -169,7 +169,7 @@ func TestCustomerCreate(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	oc := &Customer{
+	customer := Customer{
 		FirstName: "Lionel",
 		LastName:  "Barrow",
 		Company:   "Braintree",
@@ -184,7 +184,7 @@ func TestCustomerCreate(t *testing.T) {
 		},
 	}
 
-	customer, err := gw.Customer().Create(oc)
+	err := gw.Customer().Create(&customer)
 
 	t.Log(customer)
 
@@ -260,17 +260,18 @@ func TestCustomerUpdate(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	c2, err := gw.Customer().Update(&Customer{
+	customer := Customer{
 		Id:        "35182871",
 		FirstName: "John",
-	})
+	}
+	err := gw.Customer().Update(&customer)
 
-	t.Log(c2)
+	t.Log(customer)
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c2.FirstName != "John" {
+	if customer.FirstName != "John" {
 		t.Fatal("first name not changed")
 	}
 }
@@ -374,12 +375,12 @@ func TestCustomerFind404(t *testing.T) {
 
 	c4, err := gw.Customer().Find("35182871")
 	if err == nil {
-		t.Fatal("should return 404")
+		t.Fatal("should return EOF")
 	}
-	if err.Error() != "Not Found (404)" {
+	if err.Error() != "EOF" {
 		t.Fatal(err)
 	}
-	if c4 != nil {
-		t.Fatal(c4)
+	if c4.Id != "" {
+		t.Fatal(c4.Id)
 	}
 }

@@ -137,14 +137,15 @@ func TestTransactionCreate(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	tx, err := gw.Transaction().Create(&Transaction{
+	tx := Transaction{
 		Type:   "sale",
 		Amount: 100.00,
 		CreditCard: &CreditCard{
 			Number:         testCreditCards["visa"].Number,
 			ExpirationDate: "05/14",
 		},
-	})
+	}
+	err := gw.Transaction().Create(&tx)
 
 	t.Log(tx)
 
@@ -613,7 +614,7 @@ func TestTransactionSearch(t *testing.T) {
 
 	txg := gw.Transaction()
 
-	query := new(SearchQuery)
+	var query SearchQuery
 	f := query.AddTextField("customer-first-name")
 	f.Is = "Jimmy"
 
@@ -777,18 +778,22 @@ func TestTransactionCreateWhenGatewayRejected(t *testing.T) {
 
 	txg := gw.Transaction()
 
-	_, err := txg.Create(&Transaction{
+	tx := Transaction{
 		Type:   "sale",
 		Amount: 2010.00,
 		CreditCard: &CreditCard{
 			Number:         testCreditCards["visa"].Number,
 			ExpirationDate: "05/14",
 		},
-	})
-	if err == nil {
+	}
+	err := txg.Create(&tx)
+	if err != nil {
 		t.Fatal("Did not receive error when creating invalid transaction")
 	}
-	if err.Error() != "Card Issuer Declined CVV" {
+	if tx.Success() {
+		t.Fatal(tx.ErrorMessage, "Did not receive error when creating invalid transaction")
+	}
+	if tx.ErrorMessage != "Card Issuer Declined CVV" {
 		t.Fatal(err)
 	}
 }
@@ -954,7 +959,7 @@ func TestFindNonExistantTransaction(t *testing.T) {
 	if err == nil {
 		t.Fatal("Did not receive error when finding an invalid tx ID")
 	}
-	if err.Error() != "Not Found (404)" {
+	if err.Error() != "EOF" {
 		t.Fatal(err)
 	}
 }
@@ -1132,54 +1137,54 @@ func TestAllTransactionFields(t *testing.T) {
 		},
 	}
 
-	tx2, err := txg.Create(tx)
+	err := txg.Create(tx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if tx2.Type != tx.Type {
+	if tx.Type != tx.Type {
 		t.Fail()
 	}
-	if tx2.Amount != tx.Amount {
+	if tx.Amount != tx.Amount {
 		t.Fail()
 	}
-	if tx2.OrderId != tx.OrderId {
+	if tx.OrderId != tx.OrderId {
 		t.Fail()
 	}
-	if tx2.Customer.FirstName != tx.Customer.FirstName {
+	if tx.Customer.FirstName != tx.Customer.FirstName {
 		t.Fail()
 	}
-	if tx2.BillingAddress.StreetAddress != tx.BillingAddress.StreetAddress {
+	if tx.BillingAddress.StreetAddress != tx.BillingAddress.StreetAddress {
 		t.Fail()
 	}
-	if tx2.BillingAddress.Locality != tx.BillingAddress.Locality {
+	if tx.BillingAddress.Locality != tx.BillingAddress.Locality {
 		t.Fail()
 	}
-	if tx2.BillingAddress.Region != tx.BillingAddress.Region {
+	if tx.BillingAddress.Region != tx.BillingAddress.Region {
 		t.Fail()
 	}
-	if tx2.BillingAddress.PostalCode != tx.BillingAddress.PostalCode {
+	if tx.BillingAddress.PostalCode != tx.BillingAddress.PostalCode {
 		t.Fail()
 	}
-	if tx2.ShippingAddress.StreetAddress != tx.ShippingAddress.StreetAddress {
+	if tx.ShippingAddress.StreetAddress != tx.ShippingAddress.StreetAddress {
 		t.Fail()
 	}
-	if tx2.ShippingAddress.Locality != tx.ShippingAddress.Locality {
+	if tx.ShippingAddress.Locality != tx.ShippingAddress.Locality {
 		t.Fail()
 	}
-	if tx2.ShippingAddress.Region != tx.ShippingAddress.Region {
+	if tx.ShippingAddress.Region != tx.ShippingAddress.Region {
 		t.Fail()
 	}
-	if tx2.ShippingAddress.PostalCode != tx.ShippingAddress.PostalCode {
+	if tx.ShippingAddress.PostalCode != tx.ShippingAddress.PostalCode {
 		t.Fail()
 	}
-	if tx2.CreditCard.Token == "" {
+	if tx.CreditCard.Token == "" {
 		t.Fail()
 	}
-	if tx2.Customer.Id == "" {
+	if tx.Customer.Id == "" {
 		t.Fail()
 	}
-	if tx2.Status != "submitted_for_settlement" {
+	if tx.Status != "submitted_for_settlement" {
 		t.Fail()
 	}
 }
@@ -1318,12 +1323,13 @@ func TestTransactionCreateFromPaymentMethodCode(t *testing.T) {
 
 	txg := gw.Transaction()
 
-	tx, err := txg.Create(&Transaction{
+	tx := Transaction{
 		Type:               "sale",
 		CustomerID:         "34430666",
 		Amount:             100,
 		PaymentMethodToken: "8zv3pb",
-	})
+	}
+	err := txg.Create(&tx)
 
 	if err != nil {
 		t.Fatal(err)

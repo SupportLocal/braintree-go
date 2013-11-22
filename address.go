@@ -1,11 +1,6 @@
 package braintree
 
-import (
-	"encoding/xml"
-)
-
 type Address struct {
-	XMLName            xml.Name
 	Id                 string `xml:"id,omitempty"`
 	CustomerId         string `xml:"customer-id,omitempty"`
 	FirstName          string `xml:"first-name,omitempty"`

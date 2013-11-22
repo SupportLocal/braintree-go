@@ -34,7 +34,7 @@ func TestAddressCreate(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	addr := &Address{
+	addr := Address{
 		CustomerId:         "71086244",
 		FirstName:          "Jenna",
 		LastName:           "Smith",
@@ -50,60 +50,59 @@ func TestAddressCreate(t *testing.T) {
 		CountryName:        "United States of America",
 	}
 
-	addr2, err := gw.Address().Create(addr)
+	err := gw.Address().Create(&addr)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log(addr)
-	t.Log(addr2)
 
-	if addr2.Id == "" {
+	if addr.Id == "" {
 		t.Fatal()
 	}
-	if addr2.CustomerId != "71086244" {
+	if addr.CustomerId != "71086244" {
+		t.Fatal(addr.CustomerId, "Customer ID did not match")
+	}
+	if addr.FirstName != "Jenna" {
+		t.Fatal(addr.FirstName, "FirstName failed to save")
+	}
+	if addr.LastName != "Smith" {
 		t.Fatal()
 	}
-	if addr2.FirstName != addr.FirstName {
+	if addr.Company != "Braintree" {
 		t.Fatal()
 	}
-	if addr2.LastName != addr.LastName {
+	if addr.StreetAddress != "1 E Main St" {
 		t.Fatal()
 	}
-	if addr2.Company != addr.Company {
+	if addr.ExtendedAddress != "Suite 403" {
 		t.Fatal()
 	}
-	if addr2.StreetAddress != addr.StreetAddress {
+	if addr.Locality != "Chicago" {
 		t.Fatal()
 	}
-	if addr2.ExtendedAddress != addr.ExtendedAddress {
+	if addr.Region != "Illinois" {
 		t.Fatal()
 	}
-	if addr2.Locality != addr.Locality {
+	if addr.PostalCode != "60622" {
 		t.Fatal()
 	}
-	if addr2.Region != addr.Region {
+	if addr.CountryCodeAlpha2 != "US" {
 		t.Fatal()
 	}
-	if addr2.PostalCode != addr.PostalCode {
+	if addr.CountryCodeAlpha3 != "USA" {
 		t.Fatal()
 	}
-	if addr2.CountryCodeAlpha2 != addr.CountryCodeAlpha2 {
+	if addr.CountryCodeNumeric != "840" {
 		t.Fatal()
 	}
-	if addr2.CountryCodeAlpha3 != addr.CountryCodeAlpha3 {
+	if addr.CountryName != "United States of America" {
 		t.Fatal()
 	}
-	if addr2.CountryCodeNumeric != addr.CountryCodeNumeric {
+	if addr.CreatedAt == "" {
 		t.Fatal()
 	}
-	if addr2.CountryName != addr.CountryName {
-		t.Fatal()
-	}
-	if addr2.CreatedAt == "" {
-		t.Fatal()
-	}
-	if addr2.UpdatedAt == "" {
+	if addr.UpdatedAt == "" {
 		t.Fatal()
 	}
 

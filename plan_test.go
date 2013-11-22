@@ -113,7 +113,7 @@ func TestFindAllPlans(t *testing.T) {
 		t.Fatal(plans)
 	}
 
-	var plan *Plan
+	var plan Plan
 	for _, p := range plans {
 		if p.Id == "test_plan" {
 			plan = p
@@ -123,9 +123,6 @@ func TestFindAllPlans(t *testing.T) {
 
 	t.Log(plan)
 
-	if plan == nil {
-		t.Fatal("plan not found")
-	}
 	if x := plan.Id; x != "test_plan" {
 		t.Fatal(x)
 	}

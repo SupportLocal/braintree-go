@@ -6,54 +6,27 @@ type CustomerGateway struct {
 
 // Create creates a new customer from the passed in customer object.
 // If no Id is set, Braintree will assign one.
-func (g *CustomerGateway) Create(c *Customer) (*Customer, error) {
-	resp, err := g.execute("POST", "customers", c)
-	if err != nil {
-		return nil, err
-	}
-	switch resp.StatusCode {
-	case 201:
-		return resp.customer()
-	}
-	return nil, &invalidResponseError{resp}
+func (g *CustomerGateway) Create(customer *Customer) error {
+	err := g.requestXML("POST", "customers", customer, customer)
+	return err
 }
 
 // Update updates any field that is set in the passed customer object.
 // The Id field is mandatory.
-func (g *CustomerGateway) Update(c *Customer) (*Customer, error) {
-	resp, err := g.execute("PUT", "customers/"+c.Id, c)
-	if err != nil {
-		return nil, err
-	}
-	switch resp.StatusCode {
-	case 200:
-		return resp.customer()
-	}
-	return nil, &invalidResponseError{resp}
+func (g *CustomerGateway) Update(customer *Customer) error {
+	err := g.requestXML("PUT", "customers/"+customer.Id, customer, customer)
+	return err
 }
 
 // Find finds the customer with the given id.
-func (g *CustomerGateway) Find(id string) (*Customer, error) {
-	resp, err := g.execute("GET", "customers/"+id, nil)
-	if err != nil {
-		return nil, err
-	}
-	switch resp.StatusCode {
-	case 200:
-		return resp.customer()
-	}
-	return nil, &invalidResponseError{resp}
+func (g *CustomerGateway) Find(id string) (Customer, error) {
+	var customer Customer
+	err := g.requestXML("GET", "customers/"+id, nil, &customer)
+	return customer, err
 }
 
 // Delete deletes the customer with the given id.
 func (g *CustomerGateway) Delete(id string) error {
-	resp, err := g.execute("DELETE", "customers/"+id, nil)
-	if err != nil {
-		return err
-	}
-	switch resp.StatusCode {
-	case 200:
-		return nil
-	}
-	return &invalidResponseError{resp}
+	err := g.requestXML("DELETE", "customers/"+id, nil, nil)
+	return err
 }
