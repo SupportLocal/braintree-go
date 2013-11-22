@@ -399,6 +399,76 @@ func TestCreateCreditCardInvalidInput(t *testing.T) {
 	// TODO: validate fields
 }
 
+func TestCreateCreditCardInvalidInput2(t *testing.T) {
+	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
+<api-error-response>
+  <errors>
+    <errors type="array"/>
+    <credit-card>
+      <errors type="array">
+        <error>
+          <code>91704</code>
+          <attribute type="symbol">customer_id</attribute>
+          <message>Customer ID is required.</message>
+        </error>
+      </errors>
+    </credit-card>
+  </errors>
+  <params>
+    <credit-card>
+      <expiration-date>05/14</expiration-date>
+    </credit-card>
+    <action>create</action>
+    <controller>payment_methods</controller>
+    <merchant-id>foo</merchant-id>
+  </params>
+  <message>Customer ID is required.</message>
+</api-error-response>`)
+
+	server := newServer(func(w http.ResponseWriter, r *http.Request) {
+		// This seems like it shouldn't be a status created repsonse if we get an error...  Is this an API bug?
+		w.WriteHeader(http.StatusCreated)
+		writeZip(w, response)
+	})
+	defer server.Close()
+
+	gw := Braintree{BaseURL: server.URL}
+
+	card := CreditCard{
+		Number:         testCreditCards["visa"].Number,
+		ExpirationDate: "05/14",
+	}
+
+	err := card.Create(gw)
+	t.Log(card)
+
+	// This test should fail because customer id is required
+	if err == nil {
+		t.Fatal("Customer id is required, this should of failed")
+	}
+
+	if card.Errors.Count() != 1 {
+		t.Fatal(card.Errors.Count())
+	}
+
+	ce := card.Errors[0]
+	if len(ce.Errors) != 1 {
+		t.Fatal(len(ce.Errors))
+	}
+	e := ce.Errors[0]
+	if e.Code != "91704" {
+		t.Fatal(e.Code)
+	}
+	if e.Attribute != "customer_id" {
+		t.Fatal(e.Attribute)
+	}
+	if e.Message != "Customer ID is required." {
+		t.Fatal(e.Message)
+	}
+
+	// TODO: validate fields
+}
+
 func TestFindCreditCard(t *testing.T) {
 	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
 <credit-card>
