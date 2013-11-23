@@ -95,9 +95,18 @@ func TestFindAllPlans(t *testing.T) {
   </plan>
 </plans>`)
 
+	//server := newServer(func(w http.ResponseWriter, r *http.Request) {
+	//w.WriteHeader(http.StatusOK)
+	//writeZip(w, response)
+	//})
+	//defer server.Close()
+
+	_ = response
+
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		writeZip(w, response)
+		if err := serveRecording(w, r, "plan", "all", http.StatusOK); err != nil {
+			panic(err)
+		}
 	})
 	defer server.Close()
 

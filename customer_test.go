@@ -1,93 +1,23 @@
 package braintree
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 )
 
 func TestCustomerCreateWithCVVError(t *testing.T) {
-	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
-<api-error-response>
-  <errors>
-    <errors type="array"/>
-    <credit-card>
-      <errors type="array"/>
-    </credit-card>
-  </errors>
-  <params>
-    <customer>
-      <first-name>Lionel</first-name>
-      <last-name>Barrow</last-name>
-      <company>Braintree</company>
-      <email>lionel.barrow@example.com</email>
-      <phone>312.555.1234</phone>
-      <fax>614.555.5678</fax>
-      <website>http://www.example.com</website>
-      <credit-card>
-        <expiration-date>05/14</expiration-date>
-        <options>
-          <verify-card>true</verify-card>
-        </options>
-        <device-session-id nil="true"/>
-        <fraud-merchant-id nil="true"/>
-      </credit-card>
-    </customer>
-  </params>
-  <message>Gateway Rejected: cvv</message>
-  <verification>
-    <status>gateway_rejected</status>
-    <cvv-response-code>N</cvv-response-code>
-    <avs-error-response-code nil="true"/>
-    <avs-postal-code-response-code>I</avs-postal-code-response-code>
-    <avs-street-address-response-code>I</avs-street-address-response-code>
-    <gateway-rejection-reason>cvv</gateway-rejection-reason>
-    <merchant-account-id>foo</merchant-account-id>
-    <processor-response-code>1000</processor-response-code>
-    <processor-response-text>Approved</processor-response-text>
-    <id>8jrkmb</id>
-    <billing>
-      <first-name nil="true"/>
-      <last-name nil="true"/>
-      <company nil="true"/>
-      <street-address nil="true"/>
-      <extended-address nil="true"/>
-      <locality nil="true"/>
-      <region nil="true"/>
-      <postal-code nil="true"/>
-      <country-name nil="true"/>
-    </billing>
-    <credit-card>
-      <token nil="true"/>
-      <bin>411111</bin>
-      <last-4>1111</last-4>
-      <card-type>Visa</card-type>
-      <expiration-month>05</expiration-month>
-      <expiration-year>2014</expiration-year>
-      <customer-location>US</customer-location>
-      <cardholder-name nil="true"/>
-      <prepaid>Unknown</prepaid>
-      <healthcare>Unknown</healthcare>
-      <debit>Unknown</debit>
-      <durbin-regulated>Unknown</durbin-regulated>
-      <commercial>Unknown</commercial>
-      <payroll>Unknown</payroll>
-      <issuing-bank>Unknown</issuing-bank>
-      <country-of-issuance>Unknown</country-of-issuance>
-    </credit-card>
-    <created-at type="datetime">2013-11-20T23:05:23Z</created-at>
-    <updated-at type="datetime">2013-11-20T23:05:23Z</updated-at>
-  </verification>
-</api-error-response>`)
-
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusCreated)
-		writeZip(w, response)
+		if err := serveRecording(w, r, "customer", "create_with_cvv_error", http.StatusCreated); err != nil {
+			panic(err)
+		}
 	})
 	defer server.Close()
 
 	gw := Braintree{BaseURL: server.URL}
 
 	oc := Customer{
+		Id:        "81827736",
 		FirstName: "Lionel",
 		LastName:  "Barrow",
 		Company:   "Braintree",
@@ -107,63 +37,24 @@ func TestCustomerCreateWithCVVError(t *testing.T) {
 
 	// Create with errors
 	err := gw.Customer().Create(&oc)
-	if err == nil {
-		t.Fatal("Did not receive error when creating invalid customer")
+	t.Log(oc)
+	if err != nil {
+		// Oddly enough they don't err this out in a status code...
+		t.Fatal("Should not have an error")
+	}
+	if oc.Success() {
+		t.Fatal("Should receive an error when creating an invalid customer")
+	}
+	if oc.ErrorMessage != "Gateway Rejected: cvv" {
+		t.Fatal(fmt.Sprintf("%q", oc.ErrorMessage), fmt.Sprintf("Should of received error %q", "Gateway Rejected: cvv"))
 	}
 }
 
 func TestCustomerCreate(t *testing.T) {
-	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
-<customer>
-  <id>35182871</id>
-  <merchant-id>foo</merchant-id>
-  <first-name>Lionel</first-name>
-  <last-name>Barrow</last-name>
-  <company>Braintree</company>
-  <email>lionel.barrow@example.com</email>
-  <phone>312.555.1234</phone>
-  <fax>614.555.5678</fax>
-  <website>http://www.example.com</website>
-  <created-at type="datetime">2013-11-20T23:05:24Z</created-at>
-  <updated-at type="datetime">2013-11-20T23:05:24Z</updated-at>
-  <custom-fields>
-  </custom-fields>
-  <credit-cards type="array">
-    <credit-card>
-      <bin>411111</bin>
-      <card-type>Visa</card-type>
-      <cardholder-name nil="true"/>
-      <commercial>Unknown</commercial>
-      <country-of-issuance>Unknown</country-of-issuance>
-      <created-at type="datetime">2013-11-20T23:05:24Z</created-at>
-      <customer-id>35182871</customer-id>
-      <customer-location>US</customer-location>
-      <debit>Unknown</debit>
-      <default type="boolean">true</default>
-      <durbin-regulated>Unknown</durbin-regulated>
-      <expiration-month>05</expiration-month>
-      <expiration-year>2014</expiration-year>
-      <expired type="boolean">false</expired>
-      <healthcare>Unknown</healthcare>
-      <image-url>https://assets.braintreegateway.com/payment_method_logo/visa.png?environment=sandbox&amp;merchant_id=foo</image-url>
-      <issuing-bank>Unknown</issuing-bank>
-      <last-4>1111</last-4>
-      <payroll>Unknown</payroll>
-      <prepaid>Unknown</prepaid>
-      <subscriptions type="array"/>
-      <token>gz27pb</token>
-      <unique-number-identifier>0d4987f6852ffa8612463aff627d84b5</unique-number-identifier>
-      <updated-at type="datetime">2013-11-20T23:05:24Z</updated-at>
-      <venmo-sdk type="boolean">false</venmo-sdk>
-      <verifications type="array"/>
-    </credit-card>
-  </credit-cards>
-  <addresses type="array"/>
-</customer>`)
-
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusCreated)
-		writeZip(w, response)
+		if err := serveRecording(w, r, "customer", "create", http.StatusCreated); err != nil {
+			panic(err)
+		}
 	})
 	defer server.Close()
 
@@ -204,64 +95,17 @@ func TestCustomerCreate(t *testing.T) {
 }
 
 func TestCustomerUpdate(t *testing.T) {
-	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
-<customer>
-  <id>35182871</id>
-  <merchant-id>foo</merchant-id>
-  <first-name>John</first-name>
-  <last-name>Barrow</last-name>
-  <company>Braintree</company>
-  <email>lionel.barrow@example.com</email>
-  <phone>312.555.1234</phone>
-  <fax>614.555.5678</fax>
-  <website>http://www.example.com</website>
-  <created-at type="datetime">2013-11-20T23:05:24Z</created-at>
-  <updated-at type="datetime">2013-11-20T23:05:24Z</updated-at>
-  <custom-fields>
-  </custom-fields>
-  <credit-cards type="array">
-    <credit-card>
-      <bin>411111</bin>
-      <card-type>Visa</card-type>
-      <cardholder-name nil="true"/>
-      <commercial>Unknown</commercial>
-      <country-of-issuance>Unknown</country-of-issuance>
-      <created-at type="datetime">2013-11-20T23:05:24Z</created-at>
-      <customer-id>35182871</customer-id>
-      <customer-location>US</customer-location>
-      <debit>Unknown</debit>
-      <default type="boolean">true</default>
-      <durbin-regulated>Unknown</durbin-regulated>
-      <expiration-month>05</expiration-month>
-      <expiration-year>2014</expiration-year>
-      <expired type="boolean">false</expired>
-      <healthcare>Unknown</healthcare>
-      <image-url>https://assets.braintreegateway.com/payment_method_logo/visa.png?environment=sandbox&amp;merchant_id=foo</image-url>
-      <issuing-bank>Unknown</issuing-bank>
-      <last-4>1111</last-4>
-      <payroll>Unknown</payroll>
-      <prepaid>Unknown</prepaid>
-      <subscriptions type="array"/>
-      <token>gz27pb</token>
-      <unique-number-identifier>0d4987f6852ffa8612463aff627d84b5</unique-number-identifier>
-      <updated-at type="datetime">2013-11-20T23:05:24Z</updated-at>
-      <venmo-sdk type="boolean">false</venmo-sdk>
-      <verifications type="array"/>
-    </credit-card>
-  </credit-cards>
-  <addresses type="array"/>
-</customer>`)
-
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		writeZip(w, response)
+		if err := serveRecording(w, r, "customer", "update", http.StatusCreated); err != nil {
+			panic(err)
+		}
 	})
 	defer server.Close()
 
 	gw := Braintree{BaseURL: server.URL}
 
 	customer := Customer{
-		Id:        "35182871",
+		Id:        "81827736",
 		FirstName: "John",
 	}
 	err := gw.Customer().Update(&customer)
@@ -277,103 +121,54 @@ func TestCustomerUpdate(t *testing.T) {
 }
 
 func TestCustomerFind(t *testing.T) {
-	var response = []byte(`<?xml version="1.0" encoding="UTF-8"?>
-<customer>
-  <id>35182871</id>
-  <merchant-id>foo</merchant-id>
-  <first-name>John</first-name>
-  <last-name>Barrow</last-name>
-  <company>Braintree</company>
-  <email>lionel.barrow@example.com</email>
-  <phone>312.555.1234</phone>
-  <fax>614.555.5678</fax>
-  <website>http://www.example.com</website>
-  <created-at type="datetime">2013-11-20T23:05:24Z</created-at>
-  <updated-at type="datetime">2013-11-20T23:05:24Z</updated-at>
-  <custom-fields>
-  </custom-fields>
-  <credit-cards type="array">
-    <credit-card>
-      <bin>411111</bin>
-      <card-type>Visa</card-type>
-      <cardholder-name nil="true"/>
-      <commercial>Unknown</commercial>
-      <country-of-issuance>Unknown</country-of-issuance>
-      <created-at type="datetime">2013-11-20T23:05:24Z</created-at>
-      <customer-id>35182871</customer-id>
-      <customer-location>US</customer-location>
-      <debit>Unknown</debit>
-      <default type="boolean">true</default>
-      <durbin-regulated>Unknown</durbin-regulated>
-      <expiration-month>05</expiration-month>
-      <expiration-year>2014</expiration-year>
-      <expired type="boolean">false</expired>
-      <healthcare>Unknown</healthcare>
-      <image-url>https://assets.braintreegateway.com/payment_method_logo/visa.png?environment=sandbox&amp;merchant_id=foo</image-url>
-      <issuing-bank>Unknown</issuing-bank>
-      <last-4>1111</last-4>
-      <payroll>Unknown</payroll>
-      <prepaid>Unknown</prepaid>
-      <subscriptions type="array"/>
-      <token>gz27pb</token>
-      <unique-number-identifier>0d4987f6852ffa8612463aff627d84b5</unique-number-identifier>
-      <updated-at type="datetime">2013-11-20T23:05:24Z</updated-at>
-      <venmo-sdk type="boolean">false</venmo-sdk>
-      <verifications type="array"/>
-    </credit-card>
-  </credit-cards>
-  <addresses type="array"/>
-</customer>`)
-
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		writeZip(w, response)
+		if err := serveRecording(w, r, "customer", "find", http.StatusCreated); err != nil {
+			panic(err)
+		}
 	})
 	defer server.Close()
 
 	gw := Braintree{BaseURL: server.URL}
 
-	c3, err := gw.Customer().Find("35182871")
+	c3, err := gw.Customer().Find("81827736")
 
 	t.Log(c3)
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c3.Id != "35182871" {
+	if c3.Id != "81827736" {
 		t.Fatal("ids do not match")
 	}
 }
 
 func TestCustomerDelete(t *testing.T) {
-	var response = []byte(``)
-
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		writeZip(w, response)
+		if err := serveRecording(w, r, "customer", "delete", http.StatusCreated); err != nil {
+			panic(err)
+		}
 	})
 	defer server.Close()
 
 	gw := Braintree{BaseURL: server.URL}
 
-	err := gw.Customer().Delete("35182871")
+	err := gw.Customer().Delete("81827736")
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestCustomerFind404(t *testing.T) {
-	var response = []byte(``)
-
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		writeZip(w, response)
+		if err := serveRecording(w, r, "customer", "find404", http.StatusCreated); err != nil {
+			panic(err)
+		}
 	})
 	defer server.Close()
 
 	gw := Braintree{BaseURL: server.URL}
 
-	c4, err := gw.Customer().Find("35182871")
+	c4, err := gw.Customer().Find("81827736")
 	if err == nil {
 		t.Fatal("should return EOF")
 	}

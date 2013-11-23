@@ -47,22 +47,27 @@ func TestApiErrors(t *testing.T) {
 	if aes.ErrorCount() != 1 {
 		t.Fatal(aes.ErrorCount())
 	}
-	if len(aes.CreditCardErrors) != 1 {
-		t.Fatal(len(aes.CreditCardErrors))
+	if aes.CreditCardErrors == nil {
+		t.Fatal(aes.CreditCardErrors)
 	}
 
-	cce := aes.CreditCardErrors[0]
-	if cce.Message != "Customer ID is required." {
-		t.Fatal(cce.Message)
+	if aes.CreditCardErrors.Count() != 1 {
+		t.Fatal(aes.CreditCardErrors.Count())
 	}
-	if cce.Code != "91704" {
-		t.Fatal(cce.Code)
+
+	cce := *aes.CreditCardErrors
+	e := cce[0]
+	if e.Message != "Customer ID is required." {
+		t.Fatal(e.Message)
 	}
-	if cce.Attribute != "customer_id" {
-		t.Fatal(cce.Attribute)
+	if e.Code != "91704" {
+		t.Fatal(e.Code)
 	}
-	if cce.Message != "Customer ID is required." {
-		t.Fatal(cce.Message)
+	if e.Attribute != "customer_id" {
+		t.Fatal(e.Attribute)
+	}
+	if e.Message != "Customer ID is required." {
+		t.Fatal(e.Message)
 	}
 
 }

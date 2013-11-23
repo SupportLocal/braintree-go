@@ -1,6 +1,8 @@
 braintree-go.test
 braintree.sublime-workspace
 braintree.sublime-project
+test_recordings/*
+test_setup.sh
 *.un~
 *.swp
 .ruby-version

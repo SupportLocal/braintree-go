@@ -1,7 +1,6 @@
 package braintree
 
 type Customer struct {
-	XMLName     string       `xml:"customer"`
 	Id          string       `xml:"id,omitempty"`
 	FirstName   string       `xml:"first-name,omitempty"`
 	LastName    string       `xml:"last-name,omitempty"`
@@ -12,6 +11,7 @@ type Customer struct {
 	Website     string       `xml:"website,omitempty"`
 	CreditCard  *CreditCard  `xml:"credit-card,omitempty"`
 	CreditCards *CreditCards `xml:"credit-cards,omitempty"`
+	ApiErrors
 }
 
 // DefaultCreditCard returns the default credit card, or nil

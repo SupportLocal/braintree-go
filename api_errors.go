@@ -2,20 +2,33 @@ package braintree
 
 type (
 	ApiErrors struct {
-		ErrorMessage     string     `xml:"message,omitempty"`
-		GenericErrors    []ApiError `xml:"errors>errors>error,omitempty"`
-		CreditCardErrors []ApiError `xml:"errors>credit-card>errors>error,omitempty"`
+		ErrorMessage     string         `xml:"message,omitempty"`
+		GenericErrors    *ApiErrorArray `xml:"errors>errors>error,omitempty"`
+		CreditCardErrors *ApiErrorArray `xml:"errors>credit-card>errors>error,omitempty"`
 	}
-	ApiError struct {
+
+	ApiErrorArray []ApiError
+	ApiError      struct {
 		Code      string `xml:"code,omitempty"`
 		Attribute string `xml:"attribute,omitempty"`
 		Message   string `xml:"message,omitempty"`
 	}
 )
 
+func (ae ApiErrorArray) Count() int {
+	return len(ae)
+}
+
 func (aes ApiErrors) ErrorCount() int {
-	return len(aes.GenericErrors) +
-		len(aes.CreditCardErrors)
+	var total int
+	if aes.GenericErrors != nil {
+		total += aes.GenericErrors.Count()
+	}
+
+	if aes.CreditCardErrors != nil {
+		total += aes.CreditCardErrors.Count()
+	}
+	return total
 }
 
 func (aes ApiErrors) Success() bool {
