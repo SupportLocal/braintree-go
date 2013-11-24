@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -44,11 +43,11 @@ func serveRecording(w http.ResponseWriter, r *http.Request, directory, filename 
 		return err
 	}
 	var file []byte
-	file, _ = ioutil.ReadFile(filepath.Join(workingDir, filename+"_response.xml"))
+	file, err = ioutil.ReadFile(filepath.Join(workingDir, filename+"_response.xml"))
 
-	if len(file) == 0 { // no file found, so time to record it
+	if err != nil { // no file found, so time to record it
 		// Keep a log of what we are doing and write it when we are done.
-		log.Printf("No recorded file for %s. Retrieiving response from sandbox.", filepath.Join(directory, filename+"_response.xml"))
+		//log.Printf("No recorded file for %s. Retrieiving response from sandbox.", filepath.Join(directory, filename+"_response.xml"))
 
 		var fileLog bytes.Buffer
 

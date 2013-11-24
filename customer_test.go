@@ -6,9 +6,41 @@ import (
 	"testing"
 )
 
+var testCustomer = Customer{
+	Id:        "test_customer",
+	FirstName: "Jim",
+	LastName:  "Bean",
+}
+
+func testCustomerCreate(customer *Customer) error {
+	server := newServer(func(w http.ResponseWriter, r *http.Request) {
+		if err := serveRecording(w, r, "customer", "create_test_customer_"+customer.Id, http.StatusCreated); err != nil {
+			panic(err)
+		}
+	})
+	defer server.Close()
+
+	gw := Braintree{BaseURL: server.URL}
+
+	return gw.Customer().Create(customer)
+}
+
+func testCustomerDelete(customerId string) error {
+	server := newServer(func(w http.ResponseWriter, r *http.Request) {
+		if err := serveRecording(w, r, "customer", "delele_test_customer_"+customerId, http.StatusOK); err != nil {
+			panic(err)
+		}
+	})
+	defer server.Close()
+
+	gw := Braintree{BaseURL: server.URL}
+
+	return gw.Customer().Delete(customerId)
+}
+
 func TestCustomerCreateWithCVVError(t *testing.T) {
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
-		if err := serveRecording(w, r, "customer", "create_with_cvv_error", http.StatusCreated); err != nil {
+		if err := serveRecording(w, r, "customer", "create_with_cvv_error", 422); err != nil {
 			panic(err)
 		}
 	})
@@ -38,9 +70,8 @@ func TestCustomerCreateWithCVVError(t *testing.T) {
 	// Create with errors
 	err := gw.Customer().Create(&oc)
 	t.Log(oc)
-	if err != nil {
-		// Oddly enough they don't err this out in a status code...
-		t.Fatal("Should not have an error")
+	if err == nil {
+		t.Fatal(err, "Should have an error")
 	}
 	if oc.Success() {
 		t.Fatal("Should receive an error when creating an invalid customer")
@@ -95,6 +126,14 @@ func TestCustomerCreate(t *testing.T) {
 }
 
 func TestCustomerUpdate(t *testing.T) {
+	// Delete it and fail if it isn't there.  Never know what state the sandbox could be in
+	_ = testCustomerDelete("test_customer_update")
+	testCustomer := testCustomer
+	testCustomer.Id = "test_customer_update"
+	if err := testCustomerCreate(&testCustomer); err != nil {
+		t.Fatal(err, "Unable to set up test customer")
+	}
+
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
 		if err := serveRecording(w, r, "customer", "update", http.StatusCreated); err != nil {
 			panic(err)
@@ -105,7 +144,7 @@ func TestCustomerUpdate(t *testing.T) {
 	gw := Braintree{BaseURL: server.URL}
 
 	customer := Customer{
-		Id:        "81827736",
+		Id:        testCustomer.Id,
 		FirstName: "John",
 	}
 	err := gw.Customer().Update(&customer)
@@ -118,9 +157,20 @@ func TestCustomerUpdate(t *testing.T) {
 	if customer.FirstName != "John" {
 		t.Fatal("first name not changed")
 	}
+
+	_ = testCustomerDelete("test_customer_update")
 }
 
 func TestCustomerFind(t *testing.T) {
+	// Delete it and fail if it isn't there.  Never know what state the sandbox could be in
+	_ = testCustomerDelete("test_customer_find")
+	testCustomer := testCustomer
+	testCustomer.Id = "test_customer_find"
+
+	if err := testCustomerCreate(&testCustomer); err != nil {
+		t.Fatal(err, "Unable to set up test customer")
+	}
+
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
 		if err := serveRecording(w, r, "customer", "find", http.StatusCreated); err != nil {
 			panic(err)
@@ -130,19 +180,31 @@ func TestCustomerFind(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	c3, err := gw.Customer().Find("81827736")
+	c, err := gw.Customer().Find("test_customer_find")
 
-	t.Log(c3)
+	t.Log(c)
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c3.Id != "81827736" {
+	if c.Id != "test_customer_find" {
 		t.Fatal("ids do not match")
 	}
+
+	// Clean up sandbox if needed
+	_ = testCustomerDelete("test_customer_find")
 }
 
 func TestCustomerDelete(t *testing.T) {
+	// Delete it and fail if it isn't there.  Never know what state the sandbox could be in
+	_ = testCustomerDelete("test_customer_delete")
+	testCustomer := testCustomer
+	testCustomer.Id = "test_customer_delete"
+
+	if err := testCustomerCreate(&testCustomer); err != nil {
+		t.Fatal(err, "Unable to set up test customer")
+	}
+
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
 		if err := serveRecording(w, r, "customer", "delete", http.StatusCreated); err != nil {
 			panic(err)
@@ -152,10 +214,11 @@ func TestCustomerDelete(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	err := gw.Customer().Delete("81827736")
+	err := gw.Customer().Delete("test_customer_delete")
 	if err != nil {
 		t.Fatal(err)
 	}
+	_ = testCustomerDelete("test_customer_delete")
 }
 
 func TestCustomerFind404(t *testing.T) {
@@ -168,7 +231,7 @@ func TestCustomerFind404(t *testing.T) {
 
 	gw := Braintree{BaseURL: server.URL}
 
-	c4, err := gw.Customer().Find("81827736")
+	c4, err := gw.Customer().Find("test_customer_find_404")
 	if err == nil {
 		t.Fatal("should return EOF")
 	}

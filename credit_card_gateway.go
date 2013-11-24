@@ -20,7 +20,7 @@ func (g *CreditCardGateway) Find(token string) (CreditCard, error) {
 	return card, err
 }
 
-func (g *CreditCardGateway) Delete(card *CreditCard) error {
-	err := g.requestXML("DELETE", "payment_methods/"+card.Token, nil, nil)
+func (g *CreditCardGateway) Delete(token string) error {
+	err := g.requestXML("DELETE", "payment_methods/"+token, nil, nil)
 	return err
 }
