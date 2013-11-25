@@ -34,3 +34,15 @@ func (aes ApiErrors) ErrorCount() int {
 func (aes ApiErrors) Success() bool {
 	return aes.ErrorCount() == 0 && aes.ErrorMessage == ""
 }
+
+func (aea *ApiErrorArray) For(attribute string) []string {
+	var errs []string
+	if aea != nil {
+		for _, e := range *aea {
+			if e.Attribute == attribute {
+				errs = append(errs, e.Message)
+			}
+		}
+	}
+	return errs
+}
