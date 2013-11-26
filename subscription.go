@@ -20,7 +20,9 @@ type (
 		BillingPeriodStartDate  string               `xml:"billing-period-start-date,omitempty"`
 		CurrentBillingCycle     string               `xml:"current-billing-cycle,omitempty"`
 		DaysPastDue             string               `xml:"days-past-due,omitempty"`
-		Discounts               []interface{}        `xml:"discounts,omitempty"`
+		Customer                *Customer            `xml:"customer,omitempty"`
+		CreditCard              *CreditCard          `xml:"credit-card,omitempty"`
+		Discounts               *Discounts           `xml:"discounts,omitempty"`
 		FailureCount            string               `xml:"failure-count,omitempty"`
 		FirstBillingDate        string               `xml:"first-billing-date,omitempty"`
 		MerchantAccountId       string               `xml:"merchant-account-id,omitempty"`
