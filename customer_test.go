@@ -12,6 +12,28 @@ var testCustomer = Customer{
 	LastName:  "Bean",
 }
 
+func testCustomerFindOrCreate(customer Customer) (Customer, error) {
+	if c, err := testCustomerFind(customer.Id); err != nil {
+		err = testCustomerCreate(&c)
+		return c, err
+	} else {
+		return c, nil
+	}
+}
+
+func testCustomerFind(customerId string) (Customer, error) {
+	server := newServer(func(w http.ResponseWriter, r *http.Request) {
+		if err := serveRecording(w, r, "customer", "find_test_customer_"+customerId, http.StatusCreated); err != nil {
+			panic(err)
+		}
+	})
+	defer server.Close()
+
+	gw := Braintree{BaseURL: server.URL}
+
+	return gw.Customer().Find(customerId)
+}
+
 func testCustomerCreate(customer *Customer) error {
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {
 		if err := serveRecording(w, r, "customer", "create_test_customer_"+customer.Id, http.StatusCreated); err != nil {
