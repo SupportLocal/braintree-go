@@ -1,5 +1,9 @@
 package braintree
 
+import (
+	"fmt"
+)
+
 type DiscountGateway struct {
 	*Braintree
 }
@@ -20,5 +24,5 @@ func (g *DiscountGateway) Find(id string) (Discount, error) {
 			return d, nil
 		}
 	}
-	return Discount{}, nil
+	return Discount{}, fmt.Errorf("Could not find discount with id of %q", id)
 }
