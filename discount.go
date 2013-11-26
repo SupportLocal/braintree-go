@@ -8,7 +8,6 @@ type (
 
 	Discounts []Discount
 	Discount  struct {
-		XMLName string `xml:"discount"`
 		Modification
 	}
 )

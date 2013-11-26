@@ -15,6 +15,7 @@ type Transaction struct {
 	BillingAddress     *Address            `xml:"billing,omitempty"`
 	ShippingAddress    *Address            `xml:"shipping,omitempty"`
 	Options            *TransactionOptions `xml:"options,omitempty"`
+	Discounts          Discounts           `xml:"discounts,omitempty"`
 	CreatedAt          string              `xml:"created-at,omitempty"`
 	UpdatedAt          string              `xml:"updated-at,omitempty"`
 	ApiErrors
