@@ -114,8 +114,8 @@ func (g *Braintree) Customer() *CustomerGateway {
 	return &CustomerGateway{g}
 }
 
-func (g *Braintree) Discount() *Discount {
-	return &Discount{g}
+func (g *Braintree) Discount() *DiscountGateway {
+	return &DiscountGateway{g}
 }
 
 func (g *Braintree) Subscription() *SubscriptionGateway {
