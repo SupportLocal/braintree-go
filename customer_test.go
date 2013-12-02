@@ -224,7 +224,7 @@ func TestCustomerDelete(t *testing.T) {
 	testCustomer.Id = "test_customer_delete"
 
 	if err := testCustomerCreate(&testCustomer); err != nil {
-		t.Fatal(err, "Unable to set up test customer")
+		t.Fatalf("Unable to delete test customer %s\n%s", testCustomer.Id, err)
 	}
 
 	server := newServer(func(w http.ResponseWriter, r *http.Request) {

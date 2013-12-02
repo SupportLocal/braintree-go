@@ -16,14 +16,19 @@ func TestSubscriptionCreateWithDiscount(t *testing.T) {
 	})
 	defer server.Close()
 
-	customer := testCustomer
-	if c, err := testCustomerFindOrCreate(customer); err != nil {
+	var customer = Customer{
+		Id:        "tc_subscrip",
+		FirstName: "Test",
+		LastName:  "Subscription",
+		Email:     "cory+bt@supportlocal.com",
+	}
+
+	if err := testCustomerCreate(&customer); err != nil {
 		t.Fatal(err, "Unable to set up test customer")
-	} else {
-		customer = c
 	}
 
 	creditCard := testCreditCard
+	creditCard.Number = "6011111111111117"
 	creditCard.CustomerId = customer.Id
 	if err := testCreditCardCreate(&creditCard); err != nil {
 		t.Fatal(err, "Unable to set up test credit card")
@@ -53,6 +58,10 @@ func TestSubscriptionCreateWithDiscount(t *testing.T) {
 
 	if !sub.Success() {
 		t.Fatalf("Recieved an error of %q", sub.ErrorMessage)
+	}
+
+	if err := testCustomerDelete(customer.Id); err != nil {
+		t.Fatal(err, "Unable to delete test customer")
 	}
 
 }

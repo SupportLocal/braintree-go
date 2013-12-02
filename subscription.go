@@ -19,7 +19,6 @@ type (
 		BillingPeriodStartDate string  `xml:"billing-period-start-date,omitempty"`
 		CurrentBillingCycle    string  `xml:"current-billing-cycle,omitempty"`
 		DaysPastDue            string  `xml:"days-past-due,omitempty"`
-		//Customer                *Customer            `xml:"customer,omitempty"`
 		SubscriptionDiscounts   *SubscriptionDiscountObject `xml:"discounts,omitempty"`
 		FailureCount            string                      `xml:"failure-count,omitempty"`
 		FirstBillingDate        string                      `xml:"first-billing-date,omitempty"`
