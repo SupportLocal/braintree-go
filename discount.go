@@ -14,7 +14,7 @@ type (
 
 func (d Discount) ToSubscriptionDiscount() SubscriptionDiscount {
 	return SubscriptionDiscount{
-		Id:            d.Id,
-		Amount:        d.Amount,
+		Id:     d.Id,
+		Amount: d.Amount,
 	}
 }

@@ -1,5 +1,7 @@
 package braintree
 
+import "fmt"
+
 const (
 	SubscriptionStatusActive       = "Active"
 	SubscriptionStatusCanceled     = "Canceled"
@@ -12,13 +14,13 @@ const (
 type (
 	Subscriptions []Subscription
 	Subscription  struct {
-		Id                     string  `xml:"id,omitempty"`
-		Balance                float64 `xml:"balance,omitempty"`
-		BillingDayOfMonth      string  `xml:"billing-day-of-month,omitempty"`
-		BillingPeriodEndDate   string  `xml:"billing-period-end-date,omitempty"`
-		BillingPeriodStartDate string  `xml:"billing-period-start-date,omitempty"`
-		CurrentBillingCycle    string  `xml:"current-billing-cycle,omitempty"`
-		DaysPastDue            string  `xml:"days-past-due,omitempty"`
+		Id                      string                      `xml:"id,omitempty"`
+		Balance                 float64                     `xml:"balance,omitempty"`
+		BillingDayOfMonth       string                      `xml:"billing-day-of-month,omitempty"`
+		BillingPeriodEndDate    string                      `xml:"billing-period-end-date,omitempty"`
+		BillingPeriodStartDate  string                      `xml:"billing-period-start-date,omitempty"`
+		CurrentBillingCycle     string                      `xml:"current-billing-cycle,omitempty"`
+		DaysPastDue             string                      `xml:"days-past-due,omitempty"`
 		SubscriptionDiscounts   *SubscriptionDiscountObject `xml:"discounts,omitempty"`
 		FailureCount            string                      `xml:"failure-count,omitempty"`
 		FirstBillingDate        string                      `xml:"first-billing-date,omitempty"`
@@ -74,3 +76,21 @@ type (
 		StartImmediately                     bool `xml:"start-immediately,omitempty"`
 	}
 )
+
+func (s *Subscription) AddDiscount(discount Discount, billingCycles int) {
+	if s.SubscriptionDiscounts == nil {
+		s.SubscriptionDiscounts = &SubscriptionDiscountObject{}
+	}
+	if s.SubscriptionDiscounts.Add == nil {
+		s.SubscriptionDiscounts.Add = &SubscriptionDiscountItems{}
+	}
+	item := SubscriptionDiscountItem{}
+	item.Type = "array"
+	sds := SubscriptionDiscounts{}
+	sd := discount.ToSubscriptionDiscount()
+	sd.BillingCycles = fmt.Sprintf("%d", billingCycles)
+
+	sds = append(sds, sd)
+	item.Item = &sds
+	*s.SubscriptionDiscounts.Add = append(*s.SubscriptionDiscounts.Add, item)
+}

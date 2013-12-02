@@ -34,16 +34,14 @@ func TestSubscriptionCreateWithDiscount(t *testing.T) {
 		t.Fatal(err, "Unable to set up test credit card")
 	}
 
-	d := SubscriptionDiscount{}
+	d := Discount{}
 	d.Id = "test_discount"
 	d.Amount = 5
-	d.BillingCycles = "1"
-	items := SubscriptionDiscountItems{{Item: &SubscriptionDiscounts{d}, Type: "array"}}
 	sub := Subscription{
-		PaymentMethodToken:    creditCard.Token,
-		PlanId:                "test_plan",
-		SubscriptionDiscounts: &SubscriptionDiscountObject{Add: &items},
+		PaymentMethodToken: creditCard.Token,
+		PlanId:             "test_plan",
 	}
+	sub.AddDiscount(d, 1)
 
 	gw := Braintree{BaseURL: server.URL}
 
