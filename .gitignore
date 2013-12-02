@@ -5,4 +5,5 @@ test_recordings/*
 test_setup.sh
 *.un~
 *.swp
+*.swo
 .ruby-version
