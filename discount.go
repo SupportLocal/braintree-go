@@ -11,3 +11,10 @@ type (
 		Modification
 	}
 )
+
+func (d Discount) ToSubscriptionDiscount() SubscriptionDiscount {
+	return SubscriptionDiscount{
+		Id:            d.Id,
+		Amount:        d.Amount,
+	}
+}
